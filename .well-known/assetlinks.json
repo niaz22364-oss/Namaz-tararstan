@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.niaz22364oss.namaz",
+      "sha256_cert_fingerprints": [
+        "BE:85:22:6D:A7:BA:CC:CD:29:F0:C6:87:A0:8F:B3:7F:9A:3D:40:FE:AA:0B:CD:82:6C:15:8E:D9:FB:4E:7F:06"
+      ]
+    }
+  }
+]
