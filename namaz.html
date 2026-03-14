@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0f1a">
+<title>Намаз Вакыты</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Rubik:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080d18;
+    --card: #0e1628;
+    --card2: #111b30;
+    --accent: #c8a96e;
+    --accent2: #e8c98e;
+    --green: #2ecc71;
+    --text: #e8e4d8;
+    --muted: #7a8499;
+    --border: rgba(200,169,110,0.15);
+    --glow: rgba(200,169,110,0.08);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rubik', sans-serif;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Starfield background */
+  body::before {
+    content:'';
+    position:fixed;
+    inset:0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 0%, rgba(200,169,110,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 80% 20%, rgba(100,150,255,0.04) 0%, transparent 50%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  .stars {
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:0;
+    overflow:hidden;
+  }
+  .star {
+    position:absolute;
+    background:#fff;
+    border-radius:50%;
+    animation: twinkle var(--d,3s) ease-in-out infinite;
+    opacity:0;
+  }
+  @keyframes twinkle {
+    0%,100%{opacity:0} 50%{opacity:var(--o,0.6)}
+  }
+
+  .app {
+    position:relative;
+    z-index:1;
+    max-width:420px;
+    margin:0 auto;
+    padding:0 0 100px;
+  }
+
+  /* Header */
+  .header {
+    padding: 10px 16px 4px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+  }
+
+  .header-left h1 {
+    font-family:'Cinzel',serif;
+    font-size:13px;
+    letter-spacing:3px;
+    color:var(--accent);
+    text-transform:uppercase;
+    opacity:0.8;
+  }
+
+  .header-left .hijri {
+    font-size:11px;
+    color:var(--muted);
+    margin-top:3px;
+    letter-spacing:1px;
+  }
+
+  .header-right {
+    text-align:right;
+  }
+
+  .city-btn {
+    background:none;
+    border:1px solid var(--border);
+    color:var(--accent);
+    padding:6px 14px;
+    border-radius:20px;
+    font-size:12px;
+    font-family:'Rubik',sans-serif;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    transition:all 0.3s;
+  }
+  .city-btn:active { opacity:0.7; }
+  .city-btn svg { width:12px; height:12px; }
+
+  /* Crescent decoration */
+  .crescent-wrap {
+    text-align:center;
+    padding: 0;
+    position:relative;
+  }
+  .crescent-svg {
+    width:32px;
+    height:32px;
+    filter: drop-shadow(0 0 20px rgba(200,169,110,0.4));
+    animation: moonFloat 6s ease-in-out infinite;
+  }
+  @keyframes moonFloat {
+    0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)}
+  }
+
+  /* Countdown */
+  .countdown-card {
+    margin:2px 16px;
+    background: linear-gradient(135deg, #0e1a2e, #0a1220);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:20px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+  }
+  .countdown-card::before {
+    content:'';
+    position:absolute;
+    top:-30px; left:50%; transform:translateX(-50%);
+    width:200px; height:100px;
+    background:radial-gradient(ellipse, rgba(200,169,110,0.08), transparent 70%);
+  }
+
+  .next-label {
+    font-size:11px;
+    letter-spacing:2px;
+    color:var(--muted);
+    text-transform:uppercase;
+    margin-bottom:4px;
+  }
+
+  .next-name {
+    font-family:'Cinzel',serif;
+    font-size:22px;
+    color:var(--accent2);
+    margin-bottom:2px;
+  }
+
+  .countdown-time {
+    font-size:42px;
+    font-weight:300;
+    letter-spacing:4px;
+    color:#fff;
+    line-height:1.1;
+    margin:6px 0;
+    font-variant-numeric:tabular-nums;
+  }
+
+  .countdown-sub {
+    font-size:11px;
+    color:var(--muted);
+    letter-spacing:1px;
+  }
+
+  /* Progress bar */
+  .progress-wrap {
+    margin: 12px 16px 4px;
+    height:3px;
+    background:rgba(255,255,255,0.06);
+    border-radius:2px;
+    overflow:hidden;
+  }
+  .progress-bar {
+    height:100%;
+    background:linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius:2px;
+    transition:width 1s linear;
+    box-shadow:0 0 8px rgba(200,169,110,0.5);
+  }
+
+  /* Date strip */
+  .date-strip {
+    display:flex;
+    justify-content:center;
+    gap:4px;
+    margin:12px 16px;
+    overflow-x:auto;
+    scrollbar-width:none;
+    padding-bottom:4px;
+  }
+  .date-strip::-webkit-scrollbar { display:none; }
+
+  .date-day {
+    flex:0 0 auto;
+    width:42px;
+    height:58px;
+    border-radius:12px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    border:1px solid transparent;
+    transition:all 0.3s;
+    background:rgba(255,255,255,0.03);
+  }
+  .date-day.active {
+    background:linear-gradient(135deg, rgba(200,169,110,0.2), rgba(200,169,110,0.08));
+    border-color:var(--border);
+  }
+  .date-day .wd {
+    font-size:9px;
+    letter-spacing:1px;
+    color:var(--muted);
+    text-transform:uppercase;
+    margin-bottom:4px;
+  }
+  .date-day .dd {
+    font-family:'Cinzel',serif;
+    font-size:16px;
+    color:var(--text);
+  }
+  .date-day.active .dd { color:var(--accent2); }
+  .date-day .dot {
+    width:4px;height:4px;
+    border-radius:50%;
+    background:var(--accent);
+    margin-top:4px;
+    opacity:0;
+  }
+  .date-day.active .dot { opacity:1; }
+
+  /* Prayer list */
+  .prayers-card {
+    margin:8px 16px;
+    background: var(--card);
+    border:1px solid var(--border);
+    border-radius:20px;
+    overflow:hidden;
+  }
+
+  .prayer-item {
+    display:flex;
+    align-items:center;
+    padding:14px 20px;
+    border-bottom:1px solid rgba(255,255,255,0.04);
+    transition:all 0.3s;
+    position:relative;
+    overflow:hidden;
+  }
+  .prayer-item:last-child { border-bottom:none; }
+
+  .prayer-item.active {
+    background:linear-gradient(90deg, rgba(200,169,110,0.1), transparent);
+  }
+  .prayer-item.active::before {
+    content:'';
+    position:absolute;
+    left:0;top:0;bottom:0;
+    width:3px;
+    background:linear-gradient(180deg, var(--accent), var(--accent2));
+    border-radius:0 2px 2px 0;
+  }
+
+  .prayer-item.passed {
+    opacity:0.4;
+  }
+
+  .prayer-icon {
+    width:34px;
+    height:34px;
+    border-radius:10px;
+    background:rgba(255,255,255,0.04);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-right:14px;
+    flex-shrink:0;
+  }
+  .prayer-item.active .prayer-icon {
+    background:rgba(200,169,110,0.15);
+  }
+
+  .prayer-icon svg { width:16px; height:16px; }
+
+  .prayer-info { flex:1; }
+  .prayer-name {
+    font-family:'Cinzel',serif;
+    font-size:14px;
+    color:var(--text);
+    margin-bottom:2px;
+  }
+  .prayer-item.active .prayer-name { color:var(--accent2); }
+  .prayer-arabic {
+    font-size:11px;
+    color:var(--muted);
+    direction:rtl;
+    font-family:serif;
+  }
+
+  .prayer-time {
+    font-size:18px;
+    font-weight:300;
+    letter-spacing:2px;
+    color:var(--text);
+    font-variant-numeric:tabular-nums;
+  }
+  .prayer-item.active .prayer-time { color:var(--accent2); font-weight:500; }
+
+  /* Info cards row */
+  .info-row {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin:10px 16px;
+  }
+
+  .info-card {
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:14px;
+  }
+
+  .info-card .ic-label {
+    font-size:10px;
+    letter-spacing:2px;
+    color:var(--muted);
+    text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  .info-card .ic-value {
+    font-family:'Cinzel',serif;
+    font-size:18px;
+    color:var(--accent2);
+  }
+  .info-card .ic-sub {
+    font-size:10px;
+    color:var(--muted);
+    margin-top:2px;
+  }
+
+  /* Ramadan card */
+  .ramadan-card {
+    margin:10px 16px;
+    background: linear-gradient(135deg, #0d1e35, #081525);
+    border:1px solid rgba(200,169,110,0.2);
+    border-radius:20px;
+    padding:16px 20px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+
+  .ramadan-icon {
+    font-size:32px;
+    line-height:1;
+  }
+
+  .ramadan-text h3 {
+    font-family:'Cinzel',serif;
+    font-size:14px;
+    color:var(--accent2);
+    margin-bottom:3px;
+  }
+  .ramadan-text p {
+    font-size:11px;
+    color:var(--muted);
+  }
+
+  /* Iftar/Suhoor times */
+  .fast-card {
+    margin:10px 16px;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:16px 20px;
+  }
+
+  .fast-title {
+    font-size:11px;
+    letter-spacing:2px;
+    color:var(--muted);
+    text-transform:uppercase;
+    margin-bottom:12px;
+  }
+
+  .fast-row {
+    display:flex;
+    justify-content:space-between;
+  }
+
+  .fast-item { text-align:center; }
+  .fast-item .fi-label {
+    font-size:11px;
+    color:var(--muted);
+    margin-bottom:4px;
+  }
+  .fast-item .fi-time {
+    font-family:'Cinzel',serif;
+    font-size:20px;
+    color:var(--accent2);
+  }
+  .fast-item .fi-name {
+    font-size:10px;
+    color:var(--muted);
+    margin-top:2px;
+  }
+
+  .fast-divider {
+    width:1px;
+    background:var(--border);
+    margin:0 10px;
+  }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position:fixed;
+    bottom:0;left:0;right:0;
+    z-index:10;
+    background:rgba(8,13,24,0.95);
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border-top:1px solid var(--border);
+    display:flex;
+    justify-content:space-around;
+    padding:10px 0 calc(10px + env(safe-area-inset-bottom));
+  }
+
+  .nav-btn {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-family:'Rubik',sans-serif;
+    font-size:10px;
+    letter-spacing:0.5px;
+    cursor:pointer;
+    padding:0 16px;
+    transition:color 0.3s;
+  }
+  .nav-btn.active { color:var(--accent); }
+  .nav-btn svg { width:20px; height:20px; }
+
+  /* Settings modal */
+  .modal-overlay {
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.7);
+    backdrop-filter:blur(8px);
+    z-index:100;
+    align-items:flex-end;
+  }
+  .modal-overlay.open { display:flex; }
+
+  .modal {
+    background:var(--card2);
+    border:1px solid var(--border);
+    border-radius:24px 24px 0 0;
+    padding:24px 20px 40px;
+    width:100%;
+    max-width:420px;
+    margin:0 auto;
+    max-height:90vh;
+    overflow-y:auto;
+    animation:slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes slideUp {
+    from{transform:translateY(100%)} to{transform:translateY(0)}
+  }
+
+  .modal h2 {
+    font-family:'Cinzel',serif;
+    font-size:16px;
+    color:var(--accent);
+    margin-bottom:20px;
+    letter-spacing:2px;
+    text-align:center;
+  }
+
+  .modal label {
+    display:block;
+    font-size:11px;
+    letter-spacing:1.5px;
+    color:var(--muted);
+    text-transform:uppercase;
+    margin-bottom:6px;
+    margin-top:14px;
+  }
+
+  .modal input, .modal select {
+    width:100%;
+    background:rgba(255,255,255,0.05);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:12px 16px;
+    color:var(--text);
+    font-family:'Rubik',sans-serif;
+    font-size:14px;
+    outline:none;
+    transition:border-color 0.3s;
+  }
+  .modal input:focus, .modal select:focus {
+    border-color:rgba(200,169,110,0.4);
+  }
+  .modal select option { background:#0e1628; }
+
+  .modal-btn {
+    width:100%;
+    margin-top:20px;
+    padding:14px;
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
+    border:none;
+    border-radius:14px;
+    color:#0a0f1a;
+    font-family:'Cinzel',serif;
+    font-size:14px;
+    font-weight:700;
+    letter-spacing:2px;
+    cursor:pointer;
+    transition:opacity 0.3s;
+  }
+  .modal-btn:active { opacity:0.8; }
+
+  .geo-btn {
+    width:100%;
+    margin-top:8px;
+    padding:12px;
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--border);
+    border-radius:14px;
+    color:var(--accent);
+    font-family:'Rubik',sans-serif;
+    font-size:13px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    transition:all 0.3s;
+  }
+  .geo-btn:active { opacity:0.7; }
+
+  .handle {
+    width:40px;height:4px;
+    background:rgba(255,255,255,0.15);
+    border-radius:2px;
+    margin:0 auto 20px;
+  }
+
+  /* Notifications toggle */
+  .toggle-row {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:16px;
+    padding:12px 0;
+    border-bottom:1px solid rgba(255,255,255,0.05);
+  }
+  .toggle-label { font-size:13px; color:var(--text); }
+  .toggle-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+
+  .toggle {
+    width:44px;height:24px;
+    background:rgba(255,255,255,0.1);
+    border-radius:12px;
+    position:relative;
+    cursor:pointer;
+    transition:background 0.3s;
+    flex-shrink:0;
+  }
+  .toggle.on { background:var(--accent); }
+  .toggle::after {
+    content:'';
+    position:absolute;
+    width:18px;height:18px;
+    background:#fff;
+    border-radius:50%;
+    top:3px;left:3px;
+    transition:transform 0.3s;
+    box-shadow:0 1px 4px rgba(0,0,0,0.3);
+  }
+  .toggle.on::after { transform:translateX(20px); }
+
+  /* Qibla page */
+  .page { display:none; padding-top:10px; }
+  .page.active { display:block; }
+
+  .qibla-wrap {
+    margin:20px 16px;
+    text-align:center;
+  }
+  .compass-outer {
+    width:260px;height:260px;
+    margin:0 auto 20px;
+    position:relative;
+  }
+  .compass-ring {
+    width:100%;height:100%;
+    border-radius:50%;
+    border:2px solid var(--border);
+    position:absolute;
+    top:0;left:0;
+    background:radial-gradient(circle, #0e1628 60%, #0a1020);
+    box-shadow:0 0 40px rgba(200,169,110,0.1), inset 0 0 40px rgba(0,0,0,0.5);
+  }
+  .compass-needle {
+    position:absolute;
+    top:50%;left:50%;
+    transform:translate(-50%,-50%) rotate(0deg);
+    transition:transform 1s cubic-bezier(0.34,1.56,0.64,1);
+    width:8px;
+    height:110px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  .needle-north {
+    width:0;height:0;
+    border-left:4px solid transparent;
+    border-right:4px solid transparent;
+    border-bottom:55px solid var(--accent);
+    flex-shrink:0;
+  }
+  .needle-south {
+    width:0;height:0;
+    border-left:4px solid transparent;
+    border-right:4px solid transparent;
+    border-top:55px solid rgba(255,255,255,0.2);
+    flex-shrink:0;
+  }
+  .compass-center {
+    position:absolute;
+    top:50%;left:50%;
+    transform:translate(-50%,-50%);
+    width:16px;height:16px;
+    border-radius:50%;
+    background:var(--accent);
+    box-shadow:0 0 10px rgba(200,169,110,0.5);
+    z-index:2;
+  }
+  .compass-n {
+    position:absolute;
+    top:10px;left:50%;
+    transform:translateX(-50%);
+    font-family:'Cinzel',serif;
+    font-size:12px;
+    color:var(--accent);
+  }
+  .compass-s {
+    position:absolute;
+    bottom:10px;left:50%;
+    transform:translateX(-50%);
+    font-family:'Cinzel',serif;
+    font-size:12px;
+    color:var(--muted);
+  }
+  .compass-e {
+    position:absolute;
+    right:10px;top:50%;
+    transform:translateY(-50%);
+    font-family:'Cinzel',serif;
+    font-size:12px;
+    color:var(--muted);
+  }
+  .compass-w {
+    position:absolute;
+    left:10px;top:50%;
+    transform:translateY(-50%);
+    font-family:'Cinzel',serif;
+    font-size:12px;
+    color:var(--muted);
+  }
+  .qibla-angle {
+    font-family:'Cinzel',serif;
+    font-size:36px;
+    color:var(--accent2);
+    margin-bottom:6px;
+  }
+  .qibla-label {
+    font-size:12px;
+    color:var(--muted);
+    letter-spacing:2px;
+    text-transform:uppercase;
+  }
+  .start-compass-btn {
+    margin-top:20px;
+    padding:14px 40px;
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
+    border:none;
+    border-radius:14px;
+    color:#0a0f1a;
+    font-family:'Cinzel',serif;
+    font-size:13px;
+    font-weight:700;
+    cursor:pointer;
+    letter-spacing:2px;
+  }
+
+  /* Tasbih page */
+  .tasbih-wrap {
+    margin:20px 16px;
+    text-align:center;
+  }
+  .tasbih-circle {
+    width:200px;height:200px;
+    border-radius:50%;
+    background:linear-gradient(135deg, var(--card2), var(--card));
+    border:2px solid var(--border);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    margin:20px auto;
+    cursor:pointer;
+    transition:all 0.1s;
+    box-shadow:0 0 40px rgba(200,169,110,0.1);
+    user-select:none;
+    -webkit-user-select:none;
+  }
+  .tasbih-circle:active {
+    transform:scale(0.96);
+    box-shadow:0 0 60px rgba(200,169,110,0.25);
+  }
+  .tasbih-count {
+    font-family:'Cinzel',serif;
+    font-size:56px;
+    color:var(--accent2);
+    line-height:1;
+  }
+  .tasbih-word {
+    font-size:13px;
+    color:var(--muted);
+    margin-top:6px;
+    font-family:serif;
+    direction:rtl;
+  }
+
+  .tasbih-controls {
+    display:flex;
+    justify-content:center;
+    gap:12px;
+    margin-top:8px;
+  }
+  .tasbih-btn {
+    padding:10px 24px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,0.04);
+    color:var(--text);
+    font-family:'Rubik',sans-serif;
+    font-size:13px;
+    cursor:pointer;
+    transition:all 0.3s;
+  }
+  .tasbih-btn:active { opacity:0.7; }
+
+  .tasbih-dhikr {
+    display:flex;
+    gap:8px;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin-top:16px;
+    padding:0 16px;
+  }
+  .dhikr-chip {
+    padding:8px 16px;
+    border-radius:20px;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,0.03);
+    color:var(--muted);
+    font-size:12px;
+    cursor:pointer;
+    font-family:serif;
+    direction:rtl;
+    transition:all 0.3s;
+  }
+  .dhikr-chip.active {
+    background:rgba(200,169,110,0.12);
+    color:var(--accent);
+    border-color:rgba(200,169,110,0.3);
+  }
+
+  /* Section title */
+  .section-title {
+    padding:6px 20px;
+    font-size:10px;
+    letter-spacing:3px;
+    color:var(--muted);
+    text-transform:uppercase;
+  }
+
+  .method-info {
+    text-align:center;
+    font-size:11px;
+    color:var(--muted);
+    margin:0 16px 10px;
+    padding:10px;
+    border-radius:10px;
+    background:rgba(255,255,255,0.02);
+  }
+
+  .city-chip {
+    padding:8px 4px;
+    border-radius:10px;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,0.03);
+    color:var(--text);
+    font-size:11px;
+    text-align:center;
+    cursor:pointer;
+    transition:all 0.2s;
+    font-family:'Rubik',sans-serif;
+    line-height:1.3;
+  }
+  .city-chip:active, .city-chip.selected {
+    background:rgba(200,169,110,0.15);
+    color:var(--accent2);
+    border-color:rgba(200,169,110,0.35);
+  }
+
+
+  @keyframes pulse {
+    0%,100%{opacity:1} 50%{opacity:0.5}
+  }
+  .live-dot {
+    display:inline-block;
+    width:6px;height:6px;
+    border-radius:50%;
+    background:var(--green);
+    margin-right:6px;
+    animation:pulse 2s ease-in-out infinite;
+  }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<div class="app">
+  <!-- Page: Prayers -->
+  <div class="page active" id="page-prayers">
+
+    <div class="header">
+      <div class="header-left">
+        <h1 id="headerCity">Намаз Вакыты</h1>
+        <div class="hijri" id="hijriDate">Загрузка...</div>
+        <div class="hijri" id="gregDate" style="margin-top:2px;color:#9ab;font-size:11px;letter-spacing:0.5px"></div>
+      </div>
+      <div class="header-right">
+        <button class="city-btn" onclick="openSettings()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+          <span id="cityName">Настроить</span>
+        </button>
+      </div>
+    </div>
+<!-- Countdown -->
+    <div class="countdown-card">
+      <div class="next-label">Следующий намаз</div>
+      <div class="next-name" id="nextName">—</div>
+      <div class="countdown-time" id="countdownTime">--:--:--</div>
+      <div class="countdown-sub" id="countdownSub">до начала</div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progressBar" style="width:0%"></div>
+    </div>
+
+    <!-- Date strip -->
+    <div class="date-strip" id="dateStrip"></div>
+
+    <!-- Prayer list -->
+    <div class="section-title">Времена намаза</div>
+    <div class="prayers-card" id="prayersList"></div>
+
+    <!-- Fast times -->
+    <div class="fast-card">
+      <div class="fast-title">⬤ Пост</div>
+      <div class="fast-row">
+        <div class="fast-item">
+          <div class="fi-label">Начало поста</div>
+          <div class="fi-time" id="fastStart">--:--</div>
+          <div class="fi-name">Сухур (до)</div>
+        </div>
+        <div class="fast-divider"></div>
+        <div class="fast-item">
+          <div class="fi-label">Ифтар</div>
+          <div class="fi-time" id="fastEnd">--:--</div>
+          <div class="fi-name">Разговение</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info row -->
+    <div class="info-row">
+      <div class="info-card">
+        <div class="ic-label">Восход</div>
+        <div class="ic-value" id="sunriseTime">--:--</div>
+        <div class="ic-sub" id="sunsetLabel">Закат: <span id="sunsetTime">--:--</span></div>
+      </div>
+      <div class="info-card">
+        <div class="ic-label">Метод</div>
+        <div class="ic-value" id="methodShort">MWL</div>
+        <div class="ic-sub" id="coordInfo">Координаты</div>
+      </div>
+    </div>
+
+    <div class="method-info" id="methodInfo">Установите координаты вашего города</div>
+  </div>
+
+  <!-- Page: Qibla -->
+  <div class="page" id="page-qibla">
+    <div class="header">
+      <div class="header-left"><h1>Кибла</h1></div>
+    </div>
+    <div class="qibla-wrap">
+      <div class="compass-outer">
+        <div class="compass-ring"></div>
+        <span class="compass-n">С</span>
+        <span class="compass-s">Ю</span>
+        <span class="compass-e">В</span>
+        <span class="compass-w">З</span>
+        <div class="compass-needle" id="qiblaNeedle">
+          <div class="needle-north"></div>
+          <div class="needle-south"></div>
+        </div>
+        <div class="compass-center"></div>
+      </div>
+      <div class="qibla-angle" id="qiblaAngle">--°</div>
+      <div class="qibla-label">направление к Каабе</div>
+      <button class="start-compass-btn" onclick="startQibla()">Определить направление</button>
+    </div>
+  </div>
+
+  <!-- Page: Tasbih -->
+  <div class="page" id="page-tasbih">
+    <div class="header">
+      <div class="header-left"><h1>Тасбих</h1></div>
+    </div>
+    <div class="tasbih-wrap">
+      <div class="tasbih-dhikr" id="dhikrChips">
+        <div class="dhikr-chip active" onclick="setDhikr('سُبْحَانَ ٱللَّٰهِ','Субханаллах',33,this)">سُبْحَانَ ٱللَّٰهِ</div>
+        <div class="dhikr-chip" onclick="setDhikr('ٱلْحَمْدُ لِلَّٰهِ','Альхамдулиллах',33,this)">ٱلْحَمْدُ لِلَّٰهِ</div>
+        <div class="dhikr-chip" onclick="setDhikr('ٱللَّٰهُ أَكْبَرُ','Аллаху Акбар',34,this)">ٱللَّٰهُ أَكْبَرُ</div>
+        <div class="dhikr-chip" onclick="setDhikr('لَا إِلَٰهَ إِلَّا ٱللَّٰهُ','Ля иляха иллалла',100,this)">لَا إِلَٰهَ إِلَّا ٱللَّٰهُ</div>
+      </div>
+      <div class="tasbih-circle" id="tasbihCircle" onclick="tasbihTap()">
+        <div class="tasbih-count" id="tasbihCount">0</div>
+        <div class="tasbih-word" id="tasbihWord">سُبْحَانَ ٱللَّٰهِ</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Цель: <span id="tasbihGoal">33</span></div>
+      <div class="tasbih-controls">
+        <button class="tasbih-btn" onclick="tasbihUndo()">← Отмена</button>
+        <button class="tasbih-btn" onclick="tasbihReset()">Сброс</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom nav -->
+<div class="bottom-nav">
+  <button class="nav-btn active" id="nav-prayers" onclick="showPage('prayers')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Намаз
+  </button>
+  <button class="nav-btn" id="nav-qibla" onclick="showPage('qibla')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="12,2 15,9 12,12 9,9"/></svg>
+    Кибла
+  </button>
+  <button class="nav-btn" id="nav-tasbih" onclick="showPage('tasbih')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+    Тасбих
+  </button>
+  <button class="nav-btn" id="nav-settings" onclick="openSettings()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    Настройки
+  </button>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal" onclick="closeSettingsOutside(event)">
+  <div class="modal">
+    <div class="handle"></div>
+    <h2>⚙ Настройки</h2>
+
+    <label>Поиск города</label>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <input type="text" id="inputCity" placeholder="Введите город..." value="" style="flex:1" oninput="filterCities(this.value)">
+      <button onclick="geocodeCity()" style="flex-shrink:0;padding:12px 14px;background:rgba(200,169,110,0.15);border:1px solid var(--border);border-radius:12px;color:var(--accent);font-size:12px;cursor:pointer;white-space:nowrap">🔍 Найти</button>
+    </div>
+    <div id="geocodeStatus" style="font-size:11px;color:var(--muted);margin:-6px 0 8px;min-height:16px"></div>
+    <label>Быстрый выбор</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px" id="cityGrid"></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
+      <div>
+        <label style="margin-top:0">Широта</label>
+        <input type="number" id="inputLat" placeholder="55.9027" step="0.0001">
+      </div>
+      <div>
+        <label style="margin-top:0">Долгота</label>
+        <input type="number" id="inputLon" placeholder="50.9027" step="0.0001">
+      </div>
+    </div>
+
+    <label>Метод расчёта</label>
+    <select id="inputMethod">
+      <option value="MWL">MWL (Muslim World League)</option>
+      <option value="ISNA">ISNA (Северная Америка)</option>
+      <option value="Egypt">Egyptian General Authority</option>
+      <option value="Makkah">Умм аль-Кура (Мекка)</option>
+      <option value="Karachi">University of Islamic Sciences, Karachi</option>
+      <option value="Tehran">Институт геофизики, Тегеран</option>
+      <option value="Jafari">Джафари</option>
+      <option value="DUMRF">ДУМ РФ (Россия)</option>
+      <option value="DUMRT">ДУМ РТ (Татарстан)</option>
+    </select>
+
+    <label>Мазхаб (Аср)</label>
+    <select id="inputMadhab">
+      <option value="standard">Стандарт (Шафии, Малики, Ханбали)</option>
+      <option value="hanafi">Ханафи</option>
+    </select>
+
+    <div style="text-align:center;font-size:11px;color:var(--muted);padding:8px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid var(--border)">
+      💡 Выбери город из списка выше — и всё готово
+    </div>
+
+    <button class="modal-btn" onclick="saveSettings()">СОХРАНИТЬ</button>
+    <button onclick="resetSettings()" style="width:100%;margin-top:8px;padding:12px;background:rgba(231,76,60,0.08);border:1px solid rgba(231,76,60,0.25);border-radius:14px;color:#e74c3c;font-family:'Rubik',sans-serif;font-size:13px;cursor:pointer;">🗑 Сбросить настройки</button>
+  </div>
+</div>
+
+<script>
+// ===== STARS =====
+(function(){
+  const c = document.getElementById('stars');
+  for(let i=0;i<80;i++){
+    const s=document.createElement('div');
+    s.className='star';
+    const size=Math.random()*2+0.5;
+    s.style.cssText=`
+      width:${size}px;height:${size}px;
+      left:${Math.random()*100}%;
+      top:${Math.random()*60}%;
+      --d:${2+Math.random()*4}s;
+      --o:${0.3+Math.random()*0.5};
+      animation-delay:${Math.random()*4}s;
+    `;
+    c.appendChild(s);
+  }
+})();
+
+// ===== SETTINGS =====
+const DEFAULT_SETTINGS = { city:'Кукмор', lat:56.0, lon:50.7, method:'DUMRT', madhab:'hanafi' };
+let settings = JSON.parse(localStorage.getItem('prayerSettings')||'{}');
+if(!settings.lat) {
+  settings = { ...DEFAULT_SETTINGS };
+}
+
+function openSettings(){
+  document.getElementById('inputCity').value = settings.city||'';
+  document.getElementById('inputLat').value = settings.lat||'';
+  document.getElementById('inputLon').value = settings.lon||'';
+  document.getElementById('inputMethod').value = settings.method||'MWL';
+  document.getElementById('inputMadhab').value = settings.madhab||'standard';
+  buildCityGrid();
+  document.getElementById('settingsModal').classList.add('open');
+}
+
+function closeSettingsOutside(e){
+  if(e.target.id==='settingsModal') document.getElementById('settingsModal').classList.remove('open');
+}
+
+function resetSettings(){
+  if(!confirm('Сбросить все настройки?')) return;
+  localStorage.clear();
+  settings = { ...DEFAULT_SETTINGS };
+  document.getElementById('settingsModal').classList.remove('open');
+  init();
+}
+
+function saveSettings(){
+  settings.city = document.getElementById('inputCity').value||'Город';
+  settings.lat = parseFloat(document.getElementById('inputLat').value);
+  settings.lon = parseFloat(document.getElementById('inputLon').value);
+  settings.method = document.getElementById('inputMethod').value;
+  settings.madhab = document.getElementById('inputMadhab').value;
+  localStorage.setItem('prayerSettings', JSON.stringify(settings));
+  document.getElementById('settingsModal').classList.remove('open');
+  init();
+}
+
+const CITIES = [
+  // Татарстан — координаты выверены по таблице ДУМРТ 2026
+  {name:'Казань',           lat:55.7963, lon:49.1088},
+  {name:'Кукмор',           lat:56.00,   lon:50.70},
+  {name:'Набережные Челны', lat:55.7383, lon:52.4068},
+  {name:'Нижнекамск',       lat:55.6389, lon:51.8100},
+  {name:'Альметьевск',      lat:54.9027, lon:52.2931},
+  {name:'Бугульма',         lat:54.5387, lon:52.7987},
+  {name:'Зеленодольск',     lat:55.8467, lon:48.5194},
+  {name:'Елабуга',          lat:55.7632, lon:52.0479},
+  {name:'Чистополь',        lat:55.3600, lon:50.6300},
+  {name:'Лениногорск',      lat:54.5986, lon:52.4429},
+  {name:'Арск',             lat:56.0980, lon:49.8670},
+  {name:'Менделеевск',      lat:55.8979, lon:52.3170},
+  {name:'Агрыз',            lat:56.52,   lon:52.99},
+  {name:'Актаныш',          lat:56.05,   lon:54.10},
+  {name:'Азнакаево',        lat:54.86,   lon:53.07},
+  {name:'Аксубаево',        lat:54.86,   lon:50.86},
+  {name:'Алексеевское',     lat:55.08,   lon:50.07},
+  {name:'Базарные Матаки',  lat:54.90,   lon:50.00},
+  {name:'Апастово',         lat:54.90,   lon:48.53},
+  {name:'Большая Атня',     lat:56.30,   lon:49.10},
+  {name:'Балтаси',          lat:56.34,   lon:50.21},
+  {name:'Бавлы',            lat:54.39,   lon:53.25},
+  {name:'Буинск',           lat:54.96,   lon:48.28},
+  {name:'Верхний Услон',    lat:55.78,   lon:48.72},
+  {name:'Высокая Гора',     lat:55.97,   lon:49.29},
+  {name:'Старое Дрожжаное', lat:54.71,   lon:47.96},
+  {name:'Заинск',           lat:55.30,   lon:52.00},
+  {name:'Большие Кайбицы',  lat:55.30,   lon:47.90},
+  {name:'Камское Устье',    lat:54.93,   lon:49.26},
+  {name:'Лаишево',          lat:55.40,   lon:49.55},
+  {name:'Мамадыш',          lat:55.71,   lon:51.41},
+  {name:'Мензелинск',       lat:55.73,   lon:53.11},
+  {name:'Муслюмово',        lat:55.30,   lon:53.40},
+  {name:'Новошешминск',     lat:55.08,   lon:51.62},
+  {name:'Нурлат',           lat:54.43,   lon:50.80},
+  {name:'Пестрецы',         lat:55.71,   lon:49.89},
+  {name:'Рыбная Слобода',   lat:55.45,   lon:50.32},
+  {name:'Богатые Сабы',     lat:55.87,   lon:50.59},
+  {name:'Сарманово',        lat:55.16,   lon:52.87},
+  {name:'Болгар',           lat:54.97,   lon:49.05},
+  {name:'Тетюши',           lat:54.94,   lon:48.83},
+  {name:'Тюлячи',           lat:55.88,   lon:50.22},
+  {name:'Черемшан',         lat:54.63,   lon:51.67},
+  {name:'Уруссу',           lat:54.60,   lon:53.00},
+  // Другие города РФ
+  {name:'Москва',           lat:55.7558, lon:37.6173},
+  {name:'Санкт-Петербург',  lat:59.9343, lon:30.3351},
+  {name:'Уфа',              lat:54.7352, lon:55.9587},
+  {name:'Екатеринбург',     lat:56.8389, lon:60.6057},
+  {name:'Самара',           lat:53.1961, lon:50.1510},
+  {name:'Оренбург',         lat:51.7727, lon:55.0988},
+  {name:'Пермь',            lat:58.0105, lon:56.2502},
+  {name:'Тюмень',           lat:57.1522, lon:68.0027},
+  {name:'Ижевск',           lat:56.8527, lon:53.2048},
+  {name:'Йошкар-Ола',       lat:56.6345, lon:47.8963},
+  {name:'Чебоксары',        lat:56.1439, lon:47.2489},
+  {name:'Ульяновск',        lat:54.3282, lon:48.3866},
+  {name:'Астрахань',        lat:46.3479, lon:48.0336},
+  {name:'Грозный',          lat:43.3176, lon:45.6984},
+  {name:'Махачкала',        lat:42.9849, lon:47.5047},
+  {name:'Стамбул',          lat:41.0082, lon:28.9784},
+  {name:'Ташкент',          lat:41.2995, lon:69.2401},
+  {name:'Алматы',           lat:43.2220, lon:76.8512},
+];
+
+function filterCities(q){
+  const chips=document.querySelectorAll('.city-chip');
+  const ql=q.toLowerCase().trim();
+  chips.forEach(ch=>{
+    ch.style.display=(!ql||ch.textContent.toLowerCase().includes(ql))?'':'none';
+  });
+}
+
+async function geocodeCity(){
+  const name=document.getElementById('inputCity').value.trim();
+  if(!name){return;}
+  const status=document.getElementById('geocodeStatus');
+  status.style.color='var(--accent)';
+  status.textContent='Ищу координаты...';
+  try{
+    const url=`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(name)}&format=json&limit=1&accept-language=ru`;
+    const res=await fetch(url,{headers:{'User-Agent':'NamazApp/1.0'}});
+    const data=await res.json();
+    if(data&&data.length>0){
+      const lat=parseFloat(data[0].lat).toFixed(4);
+      const lon=parseFloat(data[0].lon).toFixed(4);
+      const displayName=data[0].display_name.split(',')[0];
+      document.getElementById('inputLat').value=lat;
+      document.getElementById('inputLon').value=lon;
+      document.getElementById('inputCity').value=displayName||name;
+      status.style.color='var(--green)';
+      status.textContent=`✓ Найдено: ${displayName} (${lat}, ${lon})`;
+    } else {
+      status.style.color='#e74c3c';
+      status.textContent='Город не найден. Проверьте название.';
+    }
+  } catch(e){
+    status.style.color='#e74c3c';
+    status.textContent='Нет интернета. Введите координаты вручную.';
+  }
+}
+
+function buildCityGrid(){
+  const grid=document.getElementById('cityGrid');
+  if(!grid) return;
+  grid.innerHTML='';
+  // Show first 12 + search
+  CITIES.slice(0,24).forEach(c=>{
+    const btn=document.createElement('div');
+    btn.className='city-chip';
+    btn.textContent=c.name;
+    btn.onclick=()=>{
+      document.querySelectorAll('.city-chip').forEach(x=>x.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.getElementById('inputCity').value=c.name;
+      document.getElementById('inputLat').value=c.lat;
+      document.getElementById('inputLon').value=c.lon;
+    };
+    grid.appendChild(btn);
+  });
+}
+
+// ===== PRAYER CALCULATION (Adhan.js algorithm) =====
+const METHODS = {
+  MWL:    { fajrAngle:18, ishaAngle:17 },
+  ISNA:   { fajrAngle:15, ishaAngle:15 },
+  Egypt:  { fajrAngle:19.5, ishaAngle:17.5 },
+  Makkah: { fajrAngle:18.5, ishaMinutes:90 },
+  Karachi:{ fajrAngle:18, ishaAngle:18 },
+  Tehran: { fajrAngle:17.7, ishaAngle:14, maghribAngle:4.5 },
+  Jafari: { fajrAngle:16, ishaAngle:14, maghribAngle:4 },
+  DUMRF:  { fajrAngle:18, ishaAngle:18 },
+  DUMRT:  { fajrAngle:18, ishaAngle:15 },
+};
+
+function toRad(d){ return d*Math.PI/180; }
+function toDeg(r){ return r*180/Math.PI; }
+function fixAngle(a){ return a%360<0?a%360+360:a%360; }
+function fixHour(h){ return h%24<0?h%24+24:h%24; }
+
+function julianDate(y,m,d){
+  if(m<=2){y--;m+=12;}
+  const A=Math.floor(y/100), B=2-A+Math.floor(A/4);
+  return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+d+B-1524.5;
+}
+
+function sunPosition(jd){
+  const D=jd-2451545.0;
+  const g=fixAngle(357.529+0.98560028*D);
+  const q=fixAngle(280.459+0.98564736*D);
+  const L=fixAngle(q+1.915*Math.sin(toRad(g))+0.020*Math.sin(toRad(2*g)));
+  const e=23.439-0.00000036*D;
+  const RA=fixHour(toDeg(Math.atan2(Math.cos(toRad(e))*Math.sin(toRad(L)),Math.cos(toRad(L))))/15);
+  const d=toDeg(Math.asin(Math.sin(toRad(e))*Math.sin(toRad(L))));
+  const EqT=q/15-RA;
+  return {d,EqT};
+}
+
+// timeDiff: hour angle for given elevation angle (degrees)
+// Uses praytimes.org formula: sin(angle) not cos(90+angle)
+function timeDiff(angle, lat, dec){
+  const cosT = (Math.sin(toRad(angle)) - Math.sin(toRad(lat))*Math.sin(toRad(dec)))
+             / (Math.cos(toRad(lat)) * Math.cos(toRad(dec)));
+  if(cosT >= 1) return 0;
+  if(cosT <= -1) return 12;
+  return toDeg(Math.acos(cosT)) / 15;
+}
+
+function calcPrayers(date, lat, lon, method, madhab){
+  const m = METHODS[method] || METHODS.MWL;
+  const y = date.getFullYear(), mo = date.getMonth()+1, d = date.getDate();
+  const tz = -date.getTimezoneOffset() / 60;
+  const jd = julianDate(y, mo, d);
+  const {d: dec, EqT} = sunPosition(jd + (12 - lon/15) / 24);
+
+  const noonUTC = 12 - lon/15 - EqT;
+  const noon = noonUTC + tz;
+
+  const sunrise = noon - timeDiff(-0.8333, lat, dec);
+  const sunset  = noon + timeDiff(-0.8333, lat, dec);
+
+  // DUMRT northern latitude method:
+  // Fajr: astronomical if sun reaches -18° (cosF > -1.0), else sunrise - 2h
+  // Isha:  astronomical if sun reaches -15° sufficiently (cosI > -0.89), else sunset + 1.5h
+  // This is year-independent and physically justified for lat ~56°
+  const cosF = (Math.sin(toRad(-(m.fajrAngle || 18))) - Math.sin(toRad(lat)) * Math.sin(toRad(dec)))
+             / (Math.cos(toRad(lat)) * Math.cos(toRad(dec)));
+  const cosI = (Math.sin(toRad(-(m.ishaAngle  || 17))) - Math.sin(toRad(lat)) * Math.sin(toRad(dec)))
+             / (Math.cos(toRad(lat)) * Math.cos(toRad(dec)));
+
+  const fajr = cosF > -1.0
+    ? noon - timeDiff(-(m.fajrAngle || 18), lat, dec)
+    : sunrise - 2.0;
+
+  const isha = m.ishaMinutes
+    ? sunset + m.ishaMinutes / 60
+    : cosI > -0.89
+      ? noon + timeDiff(-(m.ishaAngle || 17), lat, dec)
+      : sunset + 1.5;
+
+  const sf = madhab === 'hanafi' ? 2 : 1;
+  const asrElev = toDeg(Math.atan(1 / (sf + Math.tan(toRad(Math.abs(lat - dec))))));
+  const asr = noon + timeDiff(asrElev, lat, dec);
+
+  const maghrib = m.maghribAngle
+    ? noon + timeDiff(-m.maghribAngle, lat, dec)
+    : sunset;
+
+  // DUMRT: Dhuhr = solar noon + 20 minutes
+  const dhuhr = noon + 20 / 60;
+
+  function hmCeil(h){
+    const totalMin = Math.ceil(h * 60);
+    const h24 = ((totalMin / 60) % 24 + 24) % 24;
+    return { h: Math.floor(h24), m: Math.floor((h24 % 1) * 60), total: Math.floor(h24 * 60) };
+  }
+
+  return {
+    fajr:    hmCeil(fajr),
+    masjid:  hmCeil(Math.max(fajr + 0.25, sunrise - 1.5)),
+    sunrise: hmCeil(sunrise),
+    dhuhr:   hmCeil(dhuhr),
+    asr:     hmCeil(asr),
+    maghrib: hmCeil(maghrib),
+    isha:    hmCeil(isha),
+  };
+}
+
+function fmt(t){ return String(t.h).padStart(2,'0')+':'+String(t.m).padStart(2,'0'); }
+
+// ===== HIJRI DATE =====
+function toHijri(date){
+  let gy=date.getFullYear(), gm=date.getMonth()+1, gd=date.getDate();
+  if(gm<=2){gy--;gm+=12;}
+  const A=Math.floor(gy/100);
+  const B=2-A+Math.floor(A/4);
+  const JD=Math.floor(365.25*(gy+4716))+Math.floor(30.6001*(gm+1))+gd+B-1524;
+  let l=JD-1948440+10632;
+  const n=Math.floor((l-1)/10631);
+  l=l-10631*n+354;
+  const j=Math.floor((10985-l)/5316)*Math.floor(50*l/17719)+
+           Math.floor(l/5670)*Math.floor(43*l/15238);
+  l=l-Math.floor((30-j)/15)*Math.floor(17719*j/50)-
+      Math.floor(j/16)*Math.floor(15238*j/43)+29;
+  const month=Math.floor(24*l/709);
+  const day=l-Math.floor(709*month/24);
+  const year=30*n+j-30;
+  const hMonths=['Мухаррам','Сафар','Раби аль-Авваль','Раби ас-Сани','Джумада аль-Уля','Джумада ас-Сани','Раджаб','Шаабан','Рамадан','Шавваль','Зуль-Каада','Зуль-Хиджа'];
+  return `${day} ${hMonths[month-1]} ${year}`;
+}
+
+// ===== DATE STRIP =====
+function buildDateStrip(selectedDate){
+  const strip=document.getElementById('dateStrip');
+  strip.innerHTML='';
+  const days=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+  const today=new Date();
+  for(let i=-2;i<=4;i++){
+    const d=new Date(today);
+    d.setDate(today.getDate()+i);
+    const div=document.createElement('div');
+    div.className='date-day'+(i===0?' active':'');
+    div.innerHTML=`<span class="wd">${days[d.getDay()]}</span><span class="dd">${d.getDate()}</span><div class="dot"></div>`;
+    div.onclick=(()=>{
+      const dt=new Date(d);
+      return ()=>{
+        document.querySelectorAll('.date-day').forEach(x=>x.classList.remove('active'));
+        div.classList.add('active');
+        selectedDate=dt;
+        renderPrayers(dt);
+      };
+    })();
+    strip.appendChild(div);
+  }
+}
+
+// ===== PRAYERS LIST =====
+const PRAYER_NAMES=[
+  {key:'fajr',   name:'Фаджр',   ar:'الفجر',    icon:'🌙'},
+  {key:'masjid', name:'В мечети', ar:'جماعة',   icon:'🕌'},
+  {key:'sunrise',name:'Восход',  ar:'الشروق',   icon:'🌅', noIcon:true},
+  {key:'dhuhr',  name:'Зухр',    ar:'الظهر',    icon:'☀️'},
+  {key:'asr',    name:'Аср',     ar:'العصر',    icon:'🌤'},
+  {key:'maghrib',name:'Магриб',  ar:'المغرب',   icon:'🌆'},
+  {key:'isha',   name:'Иша',     ar:'العشاء',   icon:'🌃'},
+];
+
+function renderPrayers(date){
+  const {lat,lon,method,madhab,city}=settings;
+  if(!lat||!lon){ return; }
+
+  document.getElementById('cityName').textContent=city||'Город';
+  document.getElementById('headerCity').textContent=city||'Намаз';
+  document.getElementById('hijriDate').textContent=toHijri(date);
+  const days=['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+  const months=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+  document.getElementById('gregDate').textContent=`${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}г.`;
+  document.getElementById('methodShort').textContent=method||'MWL';
+  document.getElementById('coordInfo').textContent=`${lat.toFixed(2)}° ${lon.toFixed(2)}°`;
+  document.getElementById('methodInfo').textContent=`Метод: ${(METHODS[method]?method:'MWL')} • Мазхаб: ${madhab==='hanafi'?'Ханафи':'Стандарт'}`;
+
+  const t=calcPrayers(date,lat,lon,method||'MWL',madhab||'standard');
+  
+  document.getElementById('fastStart').textContent=fmt(t.fajr);
+  document.getElementById('fastEnd').textContent=fmt(t.maghrib);
+  document.getElementById('sunriseTime').textContent=fmt(t.sunrise);
+  document.getElementById('sunsetTime').textContent=fmt(t.maghrib);
+
+  const now=new Date();
+  const nowMin=now.getHours()*60+now.getMinutes();
+  const isToday=date.toDateString()===now.toDateString();
+
+  const list=document.getElementById('prayersList');
+  list.innerHTML='';
+
+  const times=[t.fajr,t.masjid,t.sunrise,t.dhuhr,t.asr,t.maghrib,t.isha];
+
+  PRAYER_NAMES.forEach((p,i)=>{
+    const ti=times[i];
+    const min=ti.total;
+    const passed=isToday&&nowMin>min;
+    const active=isToday&&i===getCurrentPrayer(times,nowMin);
+
+    const div=document.createElement('div');
+    div.className='prayer-item'+(active?' active':passed?' passed':'');
+
+    const icons=['🌙','🕌','🌅','☀️','⛅','🌆','🌃'];
+    div.innerHTML=`
+      <div class="prayer-icon"><span style="font-size:16px">${icons[i]}</span></div>
+      <div class="prayer-info">
+        <div class="prayer-name">${p.name}</div>
+        <div class="prayer-arabic">${p.ar}</div>
+      </div>
+      <div class="prayer-time">${fmt(ti)}</div>
+    `;
+    list.appendChild(div);
+  });
+
+  if(isToday){
+    const now2=new Date();
+    const nowMinSec=now2.getHours()*60+now2.getMinutes()+now2.getSeconds()/60;
+    updateCountdown(times,nowMinSec);
+  }
+}
+
+function getCurrentPrayer(times,nowMin){
+  const mins=times.map(t=>t.total);
+  let cur=-1;
+  for(let i=0;i<mins.length;i++){
+    if(nowMin>=mins[i]) cur=i;
+  }
+  return cur;
+}
+
+function getNextPrayer(times,nowMin){
+  const prayers=['Фаджр','В мечети','Восход','Зухр','Аср','Магриб','Иша'];
+  for(let i=0;i<times.length;i++){
+    if(times[i]&&nowMin<times[i].total) return{name:prayers[i],time:times[i]};
+  }
+  // All prayers passed — next is Fajr tomorrow
+  return{name:'Фаджр',time:{...times[0],total:times[0].total+1440}};
+}
+
+function updateCountdown(times,nowMin){
+  const next=getNextPrayer(times,nowMin);
+  document.getElementById('nextName').textContent=next.name;
+  let diff=Math.floor((next.time.total-nowMin)*60);
+  if(diff<0) diff+=86400;
+  const h=Math.floor(diff/3600), m=Math.floor((diff%3600)/60), s=Math.floor(diff%60);
+  document.getElementById('countdownTime').textContent=
+    String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+
+  // Progress between current and next
+  const cur=getCurrentPrayer(times,nowMin);
+  if(cur>=0){
+    const from=times[cur].total, to=next.time.total;
+    const pct=Math.min(100,Math.max(0,(nowMin-from)/(to-from)*100));
+    document.getElementById('progressBar').style.width=pct+'%';
+  }
+}
+
+// ===== LIVE CLOCK =====
+function tick(){
+  if(!settings.lat||!settings.lon) return;
+  const now=new Date();
+  const nowMin=now.getHours()*60+now.getMinutes()+now.getSeconds()/60;
+  try {
+    const t=calcPrayers(now,settings.lat,settings.lon,settings.method||'MWL',settings.madhab||'standard');
+    const times=[t.fajr,t.masjid,t.sunrise,t.dhuhr,t.asr,t.maghrib,t.isha];
+    if(times.every(x=>x&&typeof x.total==='number')) updateCountdown(times,nowMin);
+  } catch(e){ console.warn('tick error:', e); }
+}
+
+// ===== PAGE NAV =====
+function showPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.getElementById('nav-'+p).classList.add('active');
+}
+
+// ===== QIBLA =====
+function startQibla(){
+  if(!settings.lat){alert('Сначала укажите координаты'); return;}
+  const kaabaLat=21.4225, kaabaLon=39.8262;
+  const lat=settings.lat, lon=settings.lon;
+  const dLon=toRad(kaabaLon-lon);
+  const y=Math.sin(dLon)*Math.cos(toRad(kaabaLat));
+  const x=Math.cos(toRad(lat))*Math.sin(toRad(kaabaLat))-
+          Math.sin(toRad(lat))*Math.cos(toRad(kaabaLat))*Math.cos(dLon);
+  let brng=toDeg(Math.atan2(y,x));
+  brng=(brng+360)%360;
+  document.getElementById('qiblaAngle').textContent=Math.round(brng)+'°';
+  document.getElementById('qiblaNeedle').style.transform=`translate(-50%,-50%) rotate(${brng}deg)`;
+
+  // Try device orientation
+  if(window.DeviceOrientationEvent){
+    window.addEventListener('deviceorientation',(e)=>{
+      if(e.alpha!==null){
+        const compass=360-e.alpha;
+        const needleAngle=brng-compass;
+        document.getElementById('qiblaNeedle').style.transform=`translate(-50%,-50%) rotate(${needleAngle}deg)`;
+      }
+    });
+  }
+}
+
+// ===== TASBIH =====
+let tasbihCount=0, tasbihGoal=33, tasbihText='سُبْحَانَ ٱللَّٰهِ';
+
+function setDhikr(text,name,goal,el){
+  tasbihText=text;
+  tasbihGoal=goal;
+  tasbihCount=0;
+  document.getElementById('tasbihCount').textContent='0';
+  document.getElementById('tasbihWord').textContent=text;
+  document.getElementById('tasbihGoal').textContent=goal;
+  document.querySelectorAll('.dhikr-chip').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function tasbihTap(){
+  tasbihCount++;
+  document.getElementById('tasbihCount').textContent=tasbihCount;
+  if(tasbihCount===tasbihGoal){
+    const c=document.getElementById('tasbihCircle');
+    c.style.boxShadow='0 0 80px rgba(200,169,110,0.4)';
+    setTimeout(()=>c.style.boxShadow='0 0 40px rgba(200,169,110,0.1)',600);
+    if(navigator.vibrate) navigator.vibrate([50,50,100]);
+  } else {
+    if(navigator.vibrate) navigator.vibrate(20);
+  }
+}
+
+function tasbihUndo(){
+  if(tasbihCount>0){ tasbihCount--; document.getElementById('tasbihCount').textContent=tasbihCount; }
+}
+
+function tasbihReset(){
+  tasbihCount=0;
+  document.getElementById('tasbihCount').textContent='0';
+}
+
+// ===== INIT =====
+function init(){
+  const today=new Date();
+  buildDateStrip(today);
+  renderPrayers(today);
+  clearInterval(window._tickInterval);
+  window._tickInterval=setInterval(tick,1000);
+  tick();
+}
+
+init();
+
+// If no settings, open settings
+if(!localStorage.getItem('prayerSettings')){
+  setTimeout(openSettings,800);
+}
+</script>
+</body>
+</html>
