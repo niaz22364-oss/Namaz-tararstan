@@ -84,7 +84,7 @@
 
   .header-left h1 {
     font-family:'Cinzel',serif;
-    font-size:13px;
+    font-size:20px;
     letter-spacing:3px;
     color:var(--accent);
     text-transform:uppercase;
@@ -170,12 +170,13 @@
   }
 
   .countdown-time {
-    font-size:26px;
+    font-size:22px;
     font-weight:300;
-    letter-spacing:2px;
+    letter-spacing:1px;
     color:#fff;
     line-height:1.1;
     margin:0;
+    font-family:'Rubik',sans-serif;
     font-variant-numeric:tabular-nums;
   }
 
@@ -216,7 +217,7 @@
   .date-day {
     flex:0 0 auto;
     width:42px;
-    height:58px;
+    height:62px;
     border-radius:12px;
     display:flex;
     flex-direction:column;
@@ -230,6 +231,7 @@
   .date-day.active {
     background:linear-gradient(135deg, rgba(200,169,110,0.2), rgba(200,169,110,0.08));
     border-color:var(--border);
+    width:52px;
   }
   .date-day .wd {
     font-size:9px;
@@ -243,7 +245,7 @@
     font-size:16px;
     color:var(--text);
   }
-  .date-day.active .dd { color:var(--accent2); }
+  .date-day.active .dd { color:var(--accent2); font-size:24px; }
   .date-day .dot {
     width:4px;height:4px;
     border-radius:50%;
@@ -265,7 +267,7 @@
   .prayer-item {
     display:flex;
     align-items:center;
-    padding:8px 16px;
+    padding:4px 16px;
     border-bottom:1px solid rgba(255,255,255,0.04);
     transition:all 0.3s;
     position:relative;
@@ -309,7 +311,7 @@
   .prayer-info { flex:1; }
   .prayer-name {
     font-family:'Cinzel',serif;
-    font-size:14px;
+    font-size:20px;
     color:var(--text);
     margin-bottom:0;
   }
@@ -319,7 +321,7 @@
   }
 
   .prayer-time {
-    font-size:18px;
+    font-size:22px;
     font-weight:300;
     letter-spacing:2px;
     color:var(--text);
@@ -807,11 +809,7 @@
 
   /* Section title */
   .section-title {
-    padding:6px 20px;
-    font-size:10px;
-    letter-spacing:3px;
-    color:var(--muted);
-    text-transform:uppercase;
+    display:none;
   }
 
   .method-info {
@@ -871,7 +869,7 @@
         <div class="hijri" id="hijriDate">Загрузка...</div>
         <div class="hijri" id="gregDate" style="margin-top:2px;color:#9ab;font-size:11px;letter-spacing:0.5px"></div>
       </div>
-      <div class="header-right">
+      <div class="header-right" style="display:none">
         <button class="city-btn" onclick="openSettings()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
           <span id="cityName">Настроить</span>
@@ -881,14 +879,10 @@
 <!-- Countdown -->
     <div class="countdown-card">
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <div style="text-align:left">
-          <div class="next-label">Следующий намаз</div>
-          <div class="next-name" id="nextName">—</div>
+        <div style="font-family:'Rubik',sans-serif;font-size:22px;color:#fff;font-weight:300">
+          <span id="nextName">—</span> через
         </div>
-        <div style="text-align:right">
-          <div class="countdown-time" id="countdownTime">--:--:--</div>
-          <div class="countdown-sub" id="countdownSub">до начала</div>
-        </div>
+        <div class="countdown-time" id="countdownTime">--:--:--</div>
       </div>
     </div>
 
@@ -905,7 +899,7 @@
 
     <!-- Fast times -->
     <div class="fast-card">
-      <div class="fast-title">⬤ Пост</div>
+      <div style="font-family:'Cinzel',serif;font-size:20px;font-weight:300;color:var(--accent2);margin-bottom:12px;font-variant-numeric:tabular-nums;" id="eidCountdown"></div>
       <div class="fast-row">
         <div class="fast-item">
           <div class="fi-label">Начало поста</div>
@@ -920,22 +914,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Info row -->
-    <div class="info-row">
-      <div class="info-card">
-        <div class="ic-label">Восход</div>
-        <div class="ic-value" id="sunriseTime">--:--</div>
-        <div class="ic-sub" id="sunsetLabel">Закат: <span id="sunsetTime">--:--</span></div>
-      </div>
-      <div class="info-card">
-        <div class="ic-label">Метод</div>
-        <div class="ic-value" id="methodShort">MWL</div>
-        <div class="ic-sub" id="coordInfo">Координаты</div>
-      </div>
-    </div>
-
-    <div class="method-info" id="methodInfo">Установите координаты вашего города</div>
   </div>
 
   <!-- Page: Qibla -->
@@ -962,28 +940,6 @@
     </div>
   </div>
 
-  <!-- Page: Tasbih -->
-  <div class="page" id="page-tasbih">
-    <div class="header">
-      <div class="header-left"><h1>Тасбих</h1></div>
-    </div>
-    <div class="tasbih-wrap">
-      <div class="tasbih-dhikr" id="dhikrChips">
-        <div class="dhikr-chip active" onclick="setDhikr('سُبْحَانَ ٱللَّٰهِ','Субханаллах',33,this)">سُبْحَانَ ٱللَّٰهِ</div>
-        <div class="dhikr-chip" onclick="setDhikr('ٱلْحَمْدُ لِلَّٰهِ','Альхамдулиллах',33,this)">ٱلْحَمْدُ لِلَّٰهِ</div>
-        <div class="dhikr-chip" onclick="setDhikr('ٱللَّٰهُ أَكْبَرُ','Аллаху Акбар',34,this)">ٱللَّٰهُ أَكْبَرُ</div>
-        <div class="dhikr-chip" onclick="setDhikr('لَا إِلَٰهَ إِلَّا ٱللَّٰهُ','Ля иляха иллалла',100,this)">لَا إِلَٰهَ إِلَّا ٱللَّٰهُ</div>
-      </div>
-      <div class="tasbih-circle" id="tasbihCircle" onclick="tasbihTap()">
-        <div class="tasbih-count" id="tasbihCount">0</div>
-        <div class="tasbih-word" id="tasbihWord">سُبْحَانَ ٱللَّٰهِ</div>
-      </div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Цель: <span id="tasbihGoal">33</span></div>
-      <div class="tasbih-controls">
-        <button class="tasbih-btn" onclick="tasbihUndo()">← Отмена</button>
-        <button class="tasbih-btn" onclick="tasbihReset()">Сброс</button>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -996,10 +952,6 @@
   <button class="nav-btn" id="nav-qibla" onclick="showPage('qibla')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="12,2 15,9 12,12 9,9"/></svg>
     Кибла
-  </button>
-  <button class="nav-btn" id="nav-tasbih" onclick="showPage('tasbih')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-    Тасбих
   </button>
   <button class="nav-btn" id="nav-settings" onclick="openSettings()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
@@ -1420,16 +1372,26 @@ function renderPrayers(date){
   const days=['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
   const months=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
   document.getElementById('gregDate').textContent=`${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}г.`;
-  document.getElementById('methodShort').textContent=method||'MWL';
-  document.getElementById('coordInfo').textContent=`${lat.toFixed(2)}° ${lon.toFixed(2)}°`;
-  document.getElementById('methodInfo').textContent=`Метод: ${(METHODS[method]?method:'MWL')} • Мазхаб: ${madhab==='hanafi'?'Ханафи':'Стандарт'}`;
 
   const t=calcPrayers(date,lat,lon,method||'MWL',madhab||'standard');
-  
+
   document.getElementById('fastStart').textContent=fmt(t.fajr);
   document.getElementById('fastEnd').textContent=fmt(t.maghrib);
-  document.getElementById('sunriseTime').textContent=fmt(t.sunrise);
-  document.getElementById('sunsetTime').textContent=fmt(t.maghrib);
+
+  // Ураза-байрам 2026 — 20 марта
+  const eid = new Date('2026-03-20');
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  eid.setHours(0,0,0,0);
+  const daysLeft = Math.ceil((eid - today) / (1000*60*60*24));
+  const eidEl = document.getElementById('eidCountdown');
+  if(daysLeft > 0){
+    eidEl.textContent = `до Ураза-байрам ${daysLeft} дн.`;
+  } else if(daysLeft === 0){
+    eidEl.textContent = '🌙 Ураза-байрам сегодня!';
+  } else {
+    eidEl.textContent = '';
+  }
 
   const now=new Date();
   const nowMin=now.getHours()*60+now.getMinutes();
@@ -1444,17 +1406,15 @@ function renderPrayers(date){
     const ti=times[i];
     const min=ti.total;
     const passed=isToday&&nowMin>min;
-    const active=isToday&&i===getCurrentPrayer(times,nowMin);
+    const nextIdx=getNextPrayerIndex(times,nowMin);
+    const active=isToday&&i===nextIdx;
 
     const div=document.createElement('div');
     div.className='prayer-item'+(active?' active':passed?' passed':'');
 
-    const icons=['🌙','🕌','🌅','☀️','⛅','🌆','🌃'];
     div.innerHTML=`
-      <div class="prayer-icon"><span style="font-size:16px">${icons[i]}</span></div>
       <div class="prayer-info">
         <div class="prayer-name">${p.name}</div>
-        <div class="prayer-arabic">${p.ar}</div>
       </div>
       <div class="prayer-time">${fmt(ti)}</div>
     `;
@@ -1477,6 +1437,13 @@ function getCurrentPrayer(times,nowMin){
   return cur;
 }
 
+function getNextPrayerIndex(times,nowMin){
+  for(let i=0;i<times.length;i++){
+    if(times[i]&&nowMin<times[i].total) return i;
+  }
+  return 0;
+}
+
 function getNextPrayer(times,nowMin){
   const prayers=['Фаджр','В мечети','Восход','Зухр','Аср','Магриб','Иша'];
   for(let i=0;i<times.length;i++){
@@ -1488,12 +1455,12 @@ function getNextPrayer(times,nowMin){
 
 function updateCountdown(times,nowMin){
   const next=getNextPrayer(times,nowMin);
-  document.getElementById('nextName').textContent=next.name;
   let diff=Math.floor((next.time.total-nowMin)*60);
   if(diff<0) diff+=86400;
   const h=Math.floor(diff/3600), m=Math.floor((diff%3600)/60), s=Math.floor(diff%60);
-  document.getElementById('countdownTime').textContent=
-    String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  const timeStr=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  document.getElementById('nextName').textContent=next.name;
+  document.getElementById('countdownTime').textContent=timeStr;
 
   // Progress between current and next
   const cur=getCurrentPrayer(times,nowMin);
