@@ -1283,8 +1283,8 @@ function calcPrayers(date, lat, lon, method, madhab){
     ? noon + timeDiff(-m.maghribAngle, lat, dec)
     : sunset;
 
-  // DUMRT: Dhuhr = solar noon + 20 minutes
-  const dhuhr = noon + 20 / 60;
+  // DUMRT: Dhuhr always at 12:00
+  const dhuhr = { h: 12, m: 0, total: 720 };
 
   function hmCeil(h){
     const totalMin = Math.ceil(h * 60);
@@ -1296,7 +1296,7 @@ function calcPrayers(date, lat, lon, method, madhab){
     fajr:    hmCeil(fajr),
     masjid:  hmCeil(Math.max(fajr + 0.25, sunrise - 1.5)),
     sunrise: hmCeil(sunrise),
-    dhuhr:   hmCeil(dhuhr),
+    dhuhr:   dhuhr,
     asr:     hmCeil(asr),
     maghrib: hmCeil(maghrib),
     isha:    hmCeil(isha),
