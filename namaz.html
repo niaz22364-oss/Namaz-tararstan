@@ -1283,8 +1283,11 @@ function calcPrayers(date, lat, lon, method, madhab){
     ? noon + timeDiff(-m.maghribAngle, lat, dec)
     : sunset;
 
-  // DUMRT: Dhuhr always at 12:00
-  const dhuhr = { h: 12, m: 0, total: 720 };
+  // DUMRT: Dhuhr = 12:00 if zenith is before noon, else zenith time
+  const zenithTime = hmCeil(noon);
+  const dhuhr = zenithTime.total > 720
+    ? zenithTime
+    : { h: 12, m: 0, total: 720 };
 
   function hmCeil(h){
     const totalMin = Math.ceil(h * 60);
@@ -1296,6 +1299,7 @@ function calcPrayers(date, lat, lon, method, madhab){
     fajr:    hmCeil(fajr),
     masjid:  hmCeil(Math.max(fajr + 0.25, sunrise - 1.5)),
     sunrise: hmCeil(sunrise),
+    zenith:  hmCeil(noon),
     dhuhr:   dhuhr,
     asr:     hmCeil(asr),
     maghrib: hmCeil(maghrib),
@@ -1353,13 +1357,14 @@ function buildDateStrip(selectedDate){
 
 // ===== PRAYERS LIST =====
 const PRAYER_NAMES=[
-  {key:'fajr',   name:'Фаджр',   ar:'الفجر',    icon:'🌙'},
-  {key:'masjid', name:'В мечети', ar:'جماعة',   icon:'🕌'},
-  {key:'sunrise',name:'Восход',  ar:'الشروق',   icon:'🌅', noIcon:true},
-  {key:'dhuhr',  name:'Зухр',    ar:'الظهر',    icon:'☀️'},
-  {key:'asr',    name:'Аср',     ar:'العصر',    icon:'🌤'},
-  {key:'maghrib',name:'Магриб',  ar:'المغرب',   icon:'🌆'},
-  {key:'isha',   name:'Иша',     ar:'العشاء',   icon:'🌃'},
+  {key:'fajr',   name:'Фаджр',   ar:'الفجر'},
+  {key:'masjid', name:'В мечети',ar:'جماعة'},
+  {key:'sunrise',name:'Восход',  ar:'الشروق'},
+  {key:'zenith', name:'Зенит',   ar:'الزوال', muted:true},
+  {key:'dhuhr',  name:'Зухр',    ar:'الظهر'},
+  {key:'asr',    name:'Аср',     ar:'العصر'},
+  {key:'maghrib',name:'Магриб',  ar:'المغرب'},
+  {key:'isha',   name:'Иша',     ar:'العشاء'},
 ];
 
 function renderPrayers(date){
@@ -1400,23 +1405,27 @@ function renderPrayers(date){
   const list=document.getElementById('prayersList');
   list.innerHTML='';
 
-  const times=[t.fajr,t.masjid,t.sunrise,t.dhuhr,t.asr,t.maghrib,t.isha];
+  const times=[t.fajr,t.masjid,t.sunrise,t.zenith,t.dhuhr,t.asr,t.maghrib,t.isha];
 
   PRAYER_NAMES.forEach((p,i)=>{
     const ti=times[i];
     const min=ti.total;
     const passed=isToday&&nowMin>min;
     const nextIdx=getNextPrayerIndex(times,nowMin);
-    const active=isToday&&i===nextIdx;
+    const active=isToday&&i===nextIdx&&!p.muted;
+
+    // Скрываем зенит если он после 12:00 (зухр берёт его время)
+    if(p.muted && ti.total > 720) return;
 
     const div=document.createElement('div');
     div.className='prayer-item'+(active?' active':passed?' passed':'');
+    if(p.muted) div.style.cssText='opacity:0.45;padding:2px 16px;';
 
     div.innerHTML=`
       <div class="prayer-info">
-        <div class="prayer-name">${p.name}</div>
+        <div class="prayer-name" style="${p.muted?'font-size:14px':''}">${p.name}</div>
       </div>
-      <div class="prayer-time">${fmt(ti)}</div>
+      <div class="prayer-time" style="${p.muted?'font-size:16px':''}">${fmt(ti)}</div>
     `;
     list.appendChild(div);
   });
@@ -1445,11 +1454,11 @@ function getNextPrayerIndex(times,nowMin){
 }
 
 function getNextPrayer(times,nowMin){
-  const prayers=['Фаджр','В мечети','Восход','Зухр','Аср','Магриб','Иша'];
+  const prayers=['Фаджр','В мечети','Восход','Зенит','Зухр','Аср','Магриб','Иша'];
+  const skipForCountdown=[false,false,false,true,false,false,false,false]; // skip zenith
   for(let i=0;i<times.length;i++){
-    if(times[i]&&nowMin<times[i].total) return{name:prayers[i],time:times[i]};
+    if(times[i]&&nowMin<times[i].total&&!skipForCountdown[i]) return{name:prayers[i],time:times[i]};
   }
-  // All prayers passed — next is Fajr tomorrow
   return{name:'Фаджр',time:{...times[0],total:times[0].total+1440}};
 }
 
@@ -1478,7 +1487,7 @@ function tick(){
   const nowMin=now.getHours()*60+now.getMinutes()+now.getSeconds()/60;
   try {
     const t=calcPrayers(now,settings.lat,settings.lon,settings.method||'MWL',settings.madhab||'standard');
-    const times=[t.fajr,t.masjid,t.sunrise,t.dhuhr,t.asr,t.maghrib,t.isha];
+    const times=[t.fajr,t.masjid,t.sunrise,t.zenith,t.dhuhr,t.asr,t.maghrib,t.isha];
     if(times.every(x=>x&&typeof x.total==='number')) updateCountdown(times,nowMin);
   } catch(e){ console.warn('tick error:', e); }
 }
