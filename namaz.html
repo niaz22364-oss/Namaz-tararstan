@@ -1548,11 +1548,17 @@ function startQibla(){
 
   // Проверяем — солнце над горизонтом?
   const instr=document.getElementById('qiblaInstruction');
+
+  // Кааба всегда на своём месте — юг сверху, запад справа (зеркально от обычного)
+  // 198° от севера = 18° западнее юга = 18° правее центра (на юг-сверху компасе запад справа)
+  const kaabaDeg = (qibla - 180 + 360) % 360;
+  document.getElementById('kaabaMarker').style.transform=
+    `rotate(${kaabaDeg}deg) translateY(-90px) rotate(${-kaabaDeg}deg)`;
+
   if(sunAlt<=0){
     document.getElementById('sunAngleDisplay').textContent='--°';
     document.getElementById('turnAngle').textContent='--°';
     document.getElementById('sunMarker').style.opacity='0.2';
-    document.getElementById('kaabaMarker').style.transform=`rotate(0deg) translateY(-90px) rotate(0deg)`;
     instr.innerHTML=`<span style="color:var(--muted)">🌙 Солнце за горизонтом<br>Определить направление по солнцу невозможно</span>`;
     clearInterval(window._qiblaInterval);
     window._qiblaInterval=setInterval(()=>startQibla(),60000);
@@ -1569,13 +1575,8 @@ function startQibla(){
   const dir=turn>0?'вправо':'влево';
   document.getElementById('turnAngle').textContent=(turn>0?'+':'')+Math.round(turn)+'°';
 
-  // Позиционируем иконки по реальным азимутам (юг сверху = 0°, запад=+90°, восток=-90°)
-  // Переводим из север=0° в юг=0°: вычитаем 180°
-  const kaabaDeg = (qibla - 180 + 360) % 360; // реальный азимут киблы от юга
-  const sunDegReal = (sunAz - 180 + 360) % 360; // реальный азимут солнца от юга
-
-  document.getElementById('kaabaMarker').style.transform=
-    `rotate(${kaabaDeg}deg) translateY(-90px) rotate(${-kaabaDeg}deg)`;
+  // Позиционируем иконки по реальным азимутам (юг сверху, запад справа — зеркально)
+  const sunDegReal = (sunAz - 180 + 360) % 360;
   document.getElementById('sunMarker').style.transform=
     `rotate(${sunDegReal}deg) translateY(-90px) rotate(${-sunDegReal}deg)`;
 
