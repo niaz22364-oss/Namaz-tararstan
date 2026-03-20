@@ -963,7 +963,7 @@
         </div>
       </div>
 
-      <button class="start-compass-btn" onclick="startQibla()" style="margin-top:12px">Рассчитать</button>
+      <button class="start-compass-btn" onclick="startQibla()" style="display:none">Рассчитать</button>
     </div>
   </div>
 
@@ -1525,6 +1525,7 @@ function showPage(p){
   document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
   document.getElementById('page-'+p).classList.add('active');
   document.getElementById('nav-'+p).classList.add('active');
+  if(p==='qibla') startQibla();
 }
 
 // ===== QIBLA (по солнцу) =====
