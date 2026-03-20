@@ -1670,6 +1670,14 @@ if(!localStorage.getItem('prayerSettings')){
   setTimeout(openSettings,800);
 }
 
+// ===== ОБНОВЛЕНИЕ ПРИ ВОЗВРАТЕ ИЗ ФОНА =====
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'visible'){
+    // Страница снова видна — перезапускаем всё
+    init();
+  }
+});
+
 // ===== PWA SERVICE WORKER =====
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').catch(()=>{});
