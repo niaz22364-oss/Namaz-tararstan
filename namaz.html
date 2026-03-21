@@ -993,9 +993,13 @@
     <h2>⚙ Настройки</h2>
 
     <label>Поиск города</label>
-    <div style="display:flex;gap:8px;margin-bottom:10px">
-      <input type="text" id="inputCity" placeholder="Введите город..." value="" style="flex:1" oninput="filterCities(this.value)">
-      <button onclick="geocodeCity()" style="flex-shrink:0;padding:12px 14px;background:rgba(200,169,110,0.15);border:1px solid var(--border);border-radius:12px;color:var(--accent);font-size:12px;cursor:pointer;white-space:nowrap">🔍 Найти</button>
+    <div style="position:relative;margin-bottom:10px">
+      <div style="display:flex;gap:8px">
+        <input type="text" id="inputCity" placeholder="Введите город..." value="" style="flex:1" oninput="onCityInput(this.value)" autocomplete="off">
+        <button onclick="geocodeCity()" style="flex-shrink:0;padding:12px 14px;background:rgba(200,169,110,0.15);border:1px solid var(--border);border-radius:12px;color:var(--accent);font-size:12px;cursor:pointer;white-space:nowrap">🔍 Найти</button>
+      </div>
+      <!-- Автодополнение -->
+      <div id="cityAutocomplete" style="display:none;position:absolute;top:100%;left:0;right:44px;background:var(--card2);border:1px solid var(--border);border-radius:12px;margin-top:4px;z-index:200;max-height:180px;overflow-y:auto"></div>
     </div>
     <div id="geocodeStatus" style="font-size:11px;color:var(--muted);margin:-6px 0 8px;min-height:16px"></div>
     <label>Быстрый выбор</label>
@@ -1166,6 +1170,75 @@ const CITIES = [
   {name:'Ташкент',          lat:41.2995, lon:69.2401},
   {name:'Алматы',           lat:43.2220, lon:76.8512},
 ];
+
+function onCityInput(q){
+  filterCities(q);
+  const ac=document.getElementById('cityAutocomplete');
+  const ql=q.trim();
+  if(ql.length<2){ ac.style.display='none'; return; }
+
+  // Сначала ищем в локальном списке
+  const localMatches=CITIES.filter(c=>c.name.toLowerCase().includes(ql.toLowerCase()));
+
+  ac.innerHTML='';
+
+  if(localMatches.length>0){
+    localMatches.forEach(c=>{
+      addAutocompleteItem(ac, c.name, c.lat, c.lon);
+    });
+    ac.style.display='block';
+  }
+
+  // Параллельно ищем через Nominatim
+  clearTimeout(window._acTimeout);
+  window._acTimeout=setTimeout(async ()=>{
+    try{
+      const url=`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(ql)}&format=json&limit=5&accept-language=ru`;
+      const res=await fetch(url,{headers:{'User-Agent':'NamazApp/1.0'}});
+      const data=await res.json();
+      if(data&&data.length>0){
+        ac.innerHTML='';
+        // Добавляем локальные совпадения первыми
+        localMatches.forEach(c=>addAutocompleteItem(ac, c.name, c.lat, c.lon));
+        // Затем результаты Nominatim
+        data.forEach(item=>{
+          const name=item.display_name.split(',').slice(0,2).join(',').trim();
+          const lat=parseFloat(item.lat);
+          const lon=parseFloat(item.lon);
+          // Не дублируем если уже есть в локальных
+          if(!localMatches.find(c=>Math.abs(c.lat-lat)<0.01)) {
+            addAutocompleteItem(ac, name, lat, lon);
+          }
+        });
+        ac.style.display='block';
+      }
+    } catch(e){}
+  }, 500);
+}
+
+function addAutocompleteItem(ac, name, lat, lon){
+  const div=document.createElement('div');
+  div.textContent=name;
+  div.style.cssText='padding:10px 14px;font-size:13px;color:var(--text);cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04)';
+  const select=()=>{
+    document.getElementById('inputCity').value=name;
+    document.getElementById('inputLat').value=lat;
+    document.getElementById('inputLon').value=lon;
+    ac.style.display='none';
+    document.querySelectorAll('.city-chip').forEach(x=>x.classList.remove('selected'));
+  };
+  div.onmousedown=select;
+  div.ontouchstart=select;
+  ac.appendChild(div);
+}
+
+// Скрыть автодополнение при клике вне
+document.addEventListener('click', e=>{
+  const ac=document.getElementById('cityAutocomplete');
+  if(ac && !ac.contains(e.target) && e.target.id!=='inputCity'){
+    ac.style.display='none';
+  }
+});
 
 function filterCities(q){
   const chips=document.querySelectorAll('.city-chip');
